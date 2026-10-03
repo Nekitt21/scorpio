@@ -1,0 +1,292 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>Scorpio</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500&family=Manrope:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0a0a0b; --surface:#131315; --surface2:#1a1a1d;
+    --line:rgba(255,255,255,.07); --line2:rgba(201,169,110,.35);
+    --text:#efe9df; --muted:#86817a; --gold:#c9a96e; --gold2:#e6cf9f;
+    --venom:#9b1c2e; --accent:var(--gold);
+  }
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+  html,body{background:var(--bg);color:var(--text);font-family:Manrope,system-ui,sans-serif;font-weight:400;min-height:100%}
+  body{overflow-x:hidden}
+  .serif{font-family:"Cormorant Garamond",serif}
+  svg.i{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.4;stroke-linecap:round;stroke-linejoin:round;flex:none}
+
+  /* ---------- Intro ---------- */
+  #intro{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:28px;
+    background:radial-gradient(120% 70% at 50% 35%,#17140f 0%,var(--bg) 60%);z-index:10;transition:opacity .9s ease, visibility .9s}
+  #intro.hide{opacity:0;visibility:hidden}
+  .sigil{width:132px;height:132px;border-radius:50%;border:1px solid var(--line2);display:grid;place-items:center;position:relative;animation:breathe 4s ease-in-out infinite}
+  .sigil::after{content:"";position:absolute;inset:-10px;border-radius:50%;border:1px solid rgba(201,169,110,.12)}
+  .sigil span{font-size:62px;color:var(--gold);line-height:1;font-family:"Cormorant Garamond",serif}
+  @keyframes breathe{50%{box-shadow:0 0 60px rgba(201,169,110,.12)}}
+  .intro-title{font-size:44px;font-weight:300;letter-spacing:.32em;text-transform:uppercase;padding-left:.32em}
+  .intro-sub{color:var(--muted);font-size:12px;letter-spacing:.3em;text-transform:uppercase;margin-top:-16px}
+  .btn-ghost{margin-top:18px;background:none;border:1px solid var(--line2);color:var(--gold2);padding:15px 44px;border-radius:999px;
+    font:500 12px Manrope;letter-spacing:.28em;text-transform:uppercase;cursor:pointer;transition:.3s}
+  .btn-ghost:active{background:rgba(201,169,110,.1)}
+
+  /* ---------- App ---------- */
+  #app{max-width:520px;margin:0 auto;padding:22px 18px 120px;opacity:0;transform:translateY(12px);transition:1s ease .3s}
+  #app.show{opacity:1;transform:none}
+  header{display:flex;align-items:center;justify-content:space-between;margin-bottom:30px}
+  .brand{display:flex;align-items:center;gap:10px;font-size:13px;letter-spacing:.3em;text-transform:uppercase}
+  .brand b{color:var(--gold);font:400 22px "Cormorant Garamond",serif;letter-spacing:0}
+  .icon-btn{width:38px;height:38px;border-radius:50%;border:1px solid var(--line);background:none;color:var(--muted);display:grid;place-items:center;cursor:pointer}
+  .icon-btn.on{color:var(--gold);border-color:var(--line2)}
+
+  .greet{font:300 30px/1.15 "Cormorant Garamond",serif;margin-bottom:6px}
+  .greet em{color:var(--gold);font-style:italic}
+  .date{color:var(--muted);font-size:12px;letter-spacing:.14em;text-transform:uppercase;margin-bottom:28px}
+
+  .card{background:var(--surface);border:1px solid var(--line);border-radius:22px;padding:22px 20px;margin-bottom:16px}
+  .card-h{display:flex;align-items:center;gap:10px;color:var(--muted);font-size:11px;letter-spacing:.22em;text-transform:uppercase;margin-bottom:18px}
+  .card-h svg{color:var(--gold)}
+
+  /* mood */
+  .mood{display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:6px}
+  .mood-num{font:300 92px/0.85 "Cormorant Garamond",serif;color:var(--accent);transition:color .4s;font-variant-numeric:lining-nums}
+  .mood-num small{font-size:22px;color:var(--muted);margin-left:4px}
+  .mood-label{text-align:right;padding-bottom:6px}
+  .mood-label b{display:block;font:italic 400 22px "Cormorant Garamond",serif;color:var(--text)}
+  .mood-label span{font-size:12px;color:var(--muted)}
+  input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:28px;background:transparent;margin-top:18px}
+  input[type=range]::-webkit-slider-runnable-track{height:2px;border-radius:2px;background:linear-gradient(90deg,var(--gold) 0%,var(--accent) var(--p),var(--line) var(--p))}
+  input[type=range]::-moz-range-track{height:2px;background:var(--line)}
+  input[type=range]::-moz-range-progress{height:2px;background:var(--accent)}
+  input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:22px;height:22px;margin-top:-10px;border-radius:50%;background:var(--bg);border:1.5px solid var(--accent);box-shadow:0 0 0 6px rgba(201,169,110,.08)}
+  input[type=range]::-moz-range-thumb{width:20px;height:20px;border-radius:50%;background:var(--bg);border:1.5px solid var(--accent)}
+  .scale{display:flex;justify-content:space-between;font-size:10px;color:var(--muted);letter-spacing:.18em;text-transform:uppercase;margin-top:4px}
+
+  /* chips */
+  .chips{display:flex;flex-wrap:wrap;gap:8px}
+  .chip{display:inline-flex;align-items:center;gap:8px;padding:10px 14px;border-radius:999px;border:1px solid var(--line);background:var(--surface2);
+    color:#cfc9bf;font:400 13px Manrope;cursor:pointer;transition:.25s;user-select:none}
+  .chip svg{color:var(--muted);transition:.25s}
+  .chip.on{border-color:var(--line2);color:var(--gold2);background:rgba(201,169,110,.08)}
+  .chip.on svg{color:var(--gold)}
+  .dont .chip.on{border-color:rgba(155,28,46,.6);color:#e5a3ad;background:rgba(155,28,46,.1)}
+  .dont .chip.on svg{color:#d0566a}
+  .add{display:flex;gap:8px;margin-top:14px}
+  .add input{flex:1;background:transparent;border:none;border-bottom:1px solid var(--line);color:var(--text);font:400 14px Manrope;padding:10px 2px;outline:none}
+  .add input:focus{border-color:var(--line2)}
+  .add input::placeholder{color:#55524d}
+
+  textarea{width:100%;min-height:84px;resize:none;background:transparent;border:none;color:var(--text);font:italic 300 19px/1.4 "Cormorant Garamond",serif;outline:none}
+  textarea::placeholder{color:#55524d}
+
+  .submit{position:fixed;left:0;right:0;bottom:0;padding:16px 18px calc(16px + env(safe-area-inset-bottom));background:linear-gradient(transparent,var(--bg) 40%)}
+  .submit button{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;max-width:484px;margin:0 auto;padding:18px;border-radius:999px;border:none;
+    background:linear-gradient(135deg,var(--gold2),var(--gold));color:#141210;font:600 12px Manrope;letter-spacing:.26em;text-transform:uppercase;cursor:pointer}
+  .submit button:active{transform:scale(.99)}
+
+  .toast{position:fixed;top:20px;left:50%;transform:translate(-50%,-80px);background:var(--surface2);border:1px solid var(--line2);color:var(--gold2);
+    padding:12px 20px;border-radius:999px;font-size:13px;transition:.4s;z-index:20}
+  .toast.show{transform:translate(-50%,0)}
+</style>
+</head>
+<body>
+
+<section id="intro">
+  <div class="sigil"><span>♏&#xFE0E;</span></div>
+  <div class="intro-title serif">Scorpio</div>
+  <div class="intro-sub">твоё пространство</div>
+  <button class="btn-ghost" id="enter">Войти</button>
+</section>
+
+<main id="app">
+  <header>
+    <div class="brand"><b>♏&#xFE0E;</b>Scorpio</div>
+    <button class="icon-btn" id="sound" aria-label="Музыка"></button>
+  </header>
+
+  <h1 class="greet" id="greet"></h1>
+  <div class="date" id="date"></div>
+
+  <div class="card">
+    <div class="card-h"><svg class="i" viewBox="0 0 24 24"><path d="M13 2 4 14h7l-1 8 9-12h-7z"/></svg>Уровень яда</div>
+    <div class="mood">
+      <div class="mood-num" id="num">3<small>/10</small></div>
+      <div class="mood-label"><b id="lbl"></b><span id="sub"></span></div>
+    </div>
+    <input type="range" id="range" min="1" max="10" value="3">
+    <div class="scale"><span>шёлк</span><span>яд</span></div>
+  </div>
+
+  <div class="card">
+    <div class="card-h"><svg class="i" viewBox="0 0 24 24"><path d="M12 20s-7-4.5-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.5-7 10-7 10z"/></svg>Хочу</div>
+    <div class="chips" id="want"></div>
+    <div class="add"><input id="wantIn" placeholder="Своё желание…" maxlength="60"><button class="icon-btn" data-add="want"></button></div>
+  </div>
+
+  <div class="card dont">
+    <div class="card-h"><svg class="i" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M5.7 5.7l12.6 12.6"/></svg>Не хочу</div>
+    <div class="chips" id="dont"></div>
+    <div class="add"><input id="dontIn" placeholder="Что не трогать…" maxlength="60"><button class="icon-btn" data-add="dont"></button></div>
+  </div>
+
+  <div class="card">
+    <div class="card-h"><svg class="i" viewBox="0 0 24 24"><path d="M4 20h4L19 9l-4-4L4 16z"/></svg>Пара слов</div>
+    <textarea id="note" maxlength="400" placeholder="Можно ничего не объяснять…"></textarea>
+  </div>
+</main>
+
+<div class="submit" id="submitWrap" style="display:none">
+  <button id="send"><svg class="i" viewBox="0 0 24 24"><path d="M4 12 20 4l-6 16-3-7z"/></svg>Отправить</button>
+</div>
+<div class="toast" id="toast"></div>
+
+<!-- Положи свой файл песни рядом: webapp/song.mp3 -->
+<audio id="music" src="song.mp3" loop preload="auto"></audio>
+
+<script>
+const tg = window.Telegram?.WebApp;
+tg?.ready(); tg?.expand();
+try{ tg?.setHeaderColor('#0a0a0b'); tg?.setBackgroundColor('#0a0a0b'); }catch(e){}
+
+const I = {
+  heart:'<path d="M12 20s-7-4.5-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.5-7 10-7 10z"/>',
+  flower:'<circle cx="12" cy="9" r="2"/><path d="M12 7a2.5 2.5 0 1 1 2-3.9A2.5 2.5 0 1 1 15.5 8 2.5 2.5 0 1 1 13 11.3 2.5 2.5 0 1 1 9.4 10 2.5 2.5 0 1 1 10 5.3 2.5 2.5 0 0 1 12 7zM12 11v10M12 17c-2 0-4-1-5-3"/>',
+  dinner:'<path d="M7 3v18M5 3v5a2 2 0 0 0 4 0V3M17 3c-2 2-2 7 0 9v9"/>',
+  gift:'<path d="M4 11h16v9H4zM3 7h18v4H3zM12 7v13M12 7c-1.5-4-6-3.5-5 0M12 7c1.5-4 6-3.5 5 0"/>',
+  moon:'<path d="M20 14A8 8 0 1 1 10 4a6 6 0 0 0 10 10z"/>',
+  talk:'<path d="M4 5h16v11H9l-5 4z"/>',
+  coffee:'<path d="M5 9h11v5a5 5 0 0 1-5 5h-1a5 5 0 0 1-5-5zM16 10h2a2 2 0 0 1 0 4h-2M8 3v3M12 3v3"/>',
+  film:'<rect x="4" y="4" width="16" height="16" rx="2"/><path d="m10 9 5 3-5 3z"/>',
+  pin:'<path d="M12 21s-6-6-6-11a6 6 0 0 1 12 0c0 5-6 11-6 11z"/><circle cx="12" cy="10" r="2"/>',
+  star:'<path d="m12 3 2.6 5.6 6 .7-4.5 4 1.3 6-5.4-3-5.4 3 1.3-6-4.5-4 6-.7z"/>',
+  noise:'<path d="M4 9h4l5-4v14l-5-4H4zM17 8a5 5 0 0 1 0 8"/>',
+  phone:'<path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a1 1 0 0 1-1 1A16 16 0 0 1 4 5a1 1 0 0 1 1-1z"/>',
+  ask:'<circle cx="12" cy="12" r="9"/><path d="M9.5 9a2.5 2.5 0 1 1 3.5 2.3c-.6.3-1 .9-1 1.7M12 17h.01"/>',
+  people:'<circle cx="9" cy="8" r="3"/><path d="M3 20a6 6 0 0 1 12 0M16 5a3 3 0 0 1 0 6M21 20a6 6 0 0 0-4-5.6"/>',
+  clock:'<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
+  zap:'<path d="M13 2 4 14h7l-1 8 9-12h-7z"/>',
+  glass:'<path d="M7 3h10l-1 7a4 4 0 0 1-8 0zM12 14v7M8 21h8"/>',
+  plus:'<path d="M12 5v14M5 12h14"/>',
+  sound:'<path d="M4 9h4l5-4v14l-5-4H4zM17 8a5 5 0 0 1 0 8M19.5 5.5a9 9 0 0 1 0 13"/>',
+  mute:'<path d="M4 9h4l5-4v14l-5-4H4zM17 9l5 6M22 9l-5 6"/>',
+  dot:'<circle cx="12" cy="12" r="2.5"/>'
+};
+const svg = k => `<svg class="i" viewBox="0 0 24 24">${I[k]||I.dot}</svg>`;
+
+const WANT = [['Объятия','heart'],['Цветы','flower'],['Ужин','dinner'],['Сюрприз','star'],['Подарок','gift'],
+              ['Прогулка','pin'],['Кофе','coffee'],['Фильм','film'],['Вино','glass'],['Поговорить','talk'],['Тишина','moon']];
+const DONT = [['Вопросы','ask'],['Шум','noise'],['Звонки','phone'],['Гости','people'],['Опоздания','clock'],
+              ['Споры','zap'],['Советы','talk'],['Трогать меня','heart']];
+const LEVELS = [
+  ['Шёлк','абсолютная нежность'],['Бархат','всё прекрасно'],['Тихая гладь','спокойна'],['Лёгкая прохлада','почти идеально'],
+  ['Нейтралитет','наблюдаю'],['Хвост приподнят','будь внимателен'],['Не испытывай','очень аккуратно'],
+  ['Жало наготове','лучше с цветами'],['Яд в бокале','только по делу'],['Не подходи','издалека и с подарком']
+];
+
+const sel = {want:new Set(), dont:new Set()};
+function renderChips(id, list){
+  const el = document.getElementById(id);
+  el.innerHTML = '';
+  list.forEach(([name,icon])=>{
+    const c = document.createElement('div');
+    c.className = 'chip' + (sel[id].has(name)?' on':'');
+    c.innerHTML = svg(icon) + `<span></span>`;
+    c.querySelector('span').textContent = name;
+    c.onclick = ()=>{ sel[id].has(name)?sel[id].delete(name):sel[id].add(name); c.classList.toggle('on'); tg?.HapticFeedback?.selectionChanged(); };
+    el.appendChild(c);
+  });
+}
+const lists = {want:[...WANT], dont:[...DONT]};
+renderChips('want', lists.want); renderChips('dont', lists.dont);
+
+document.querySelectorAll('[data-add]').forEach(b=>{
+  b.innerHTML = svg('plus');
+  const key = b.dataset.add, input = document.getElementById(key+'In');
+  const add = ()=>{ const v = input.value.trim(); if(!v) return;
+    if(!lists[key].some(x=>x[0]===v)) lists[key].push([v,'dot']);
+    sel[key].add(v); input.value=''; renderChips(key, lists[key]); };
+  b.onclick = add; input.addEventListener('keydown', e=>{ if(e.key==='Enter') add(); });
+});
+
+/* mood */
+const range = document.getElementById('range');
+const mix = (a,b,t)=>'#'+[0,2,4].map(i=>Math.round(parseInt(a.substr(i,2),16)*(1-t)+parseInt(b.substr(i,2),16)*t).toString(16).padStart(2,'0')).join('');
+function setMood(v){
+  v = +v;
+  const color = v<=5 ? '#c9a96e' : mix('c9a96e','b3263b',(v-5)/5);
+  document.documentElement.style.setProperty('--accent', color);
+  range.style.setProperty('--p', ((v-1)/9*100)+'%');
+  document.getElementById('num').innerHTML = v + '<small>/10</small>';
+  document.getElementById('lbl').textContent = LEVELS[v-1][0];
+  document.getElementById('sub').textContent = LEVELS[v-1][1];
+}
+range.oninput = e=>{ setMood(e.target.value); tg?.HapticFeedback?.impactOccurred(+e.target.value>7?'heavy':'light'); };
+setMood(3);
+
+/* greeting */
+const name = tg?.initDataUnsafe?.user?.first_name || '';
+const h = new Date().getHours();
+const part = h<5?'Доброй ночи':h<12?'Доброе утро':h<18?'Добрый день':'Добрый вечер';
+document.getElementById('greet').innerHTML = `${part}${name?',':''} <em></em>`;
+document.querySelector('#greet em').textContent = name;
+document.getElementById('date').textContent = new Date().toLocaleDateString('ru-RU',{weekday:'long',day:'numeric',month:'long'});
+
+/* music */
+const music = document.getElementById('music'), soundBtn = document.getElementById('sound');
+let playing = false;
+function setSound(on){
+  playing = on;
+  soundBtn.innerHTML = svg(on?'sound':'mute');
+  soundBtn.classList.toggle('on', on);
+  if(on){ music.volume = 0; music.play().then(()=>fadeIn()).catch(()=>setSound(false)); } else music.pause();
+}
+function fadeIn(){ let v=0; const t=setInterval(()=>{ v=Math.min(.6,v+.03); music.volume=v; if(v>=.6) clearInterval(t); },120); }
+soundBtn.onclick = ()=>setSound(!playing);
+soundBtn.innerHTML = svg('mute');
+
+document.getElementById('enter').onclick = ()=>{
+  setSound(true);                       // браузер разрешает звук только после нажатия
+  tg?.HapticFeedback?.impactOccurred('soft');
+  document.getElementById('intro').classList.add('hide');
+  document.getElementById('app').classList.add('show');
+  document.getElementById('submitWrap').style.display = 'block';
+};
+
+/* send */
+function toast(t){ const el=document.getElementById('toast'); el.textContent=t; el.classList.add('show'); setTimeout(()=>el.classList.remove('show'),2200); }
+const BOT = '8703354265:AAG5mCmAC27w4uwisIlmHpqUgzofyaOj2og';
+const OWNER = 1618684729;
+const esc = t => String(t).replace(/[&<>]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+let sending = false;
+document.getElementById('send').onclick = async ()=>{
+  if(sending) return;
+  const v = +range.value, want=[...sel.want], dont=[...sel.dont];
+  const note = document.getElementById('note').value.trim().slice(0,400);
+  const who = esc(tg?.initDataUnsafe?.user?.first_name || 'Она');
+  let text = `<b>${who}</b> отметила настроение\n\n♏ <b>${v}/10</b> — <i>${esc(LEVELS[v-1][0])}</i>\n${'●'.repeat(v)}${'○'.repeat(10-v)}`;
+  if(want.length) text += `\n\n✦ <b>Хочет:</b> ${esc(want.join(', '))}`;
+  if(dont.length) text += `\n✕ <b>Не хочет:</b> ${esc(dont.join(', '))}`;
+  if(note) text += `\n\n<i>«${esc(note)}»</i>`;
+  if(v >= 8) text += `\n\n⚠️ <b>Осторожно.</b>`;
+  sending = true; toast('Отправляю…');
+  try{
+    const r = await fetch(`https://api.telegram.org/bot${BOT}/sendMessage`, {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({chat_id:OWNER, text, parse_mode:'HTML'})
+    }).then(r=>r.json());
+    if(!r.ok) throw new Error(r.description);
+    tg?.HapticFeedback?.notificationOccurred('success');
+    toast('Принято ♏');
+    setTimeout(()=>tg?.close(), 1400);
+  }catch(e){
+    tg?.HapticFeedback?.notificationOccurred('error');
+    toast('Не получилось, попробуй ещё раз');
+  }finally{ sending = false; }
+};
+</script>
+</body>
+</html>
